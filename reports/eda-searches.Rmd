@@ -19,14 +19,22 @@ buscas = read_csv(here::here("data/search_data.csv"))
 ```
 
 ```{r}
-data_buscas <- buscas %>%
+search_date <- buscas %>%
         mutate(d_busca = format(session_start_date, "%Y-%m-%d"))
 ```
 
-## What is our daily overall clickthrough rate? How does it vary between the groups?
+```{r}
+count_clicks_filter <- buscas %>%
+    group_by(first_click) %>%
+    summarise(count_clicks = n()) %>%
+    arrange(desc(count_clicks))  %>%
+    top_n(20)
+```
+
+### What is our daily overall clickthrough rate? How does it vary between the groups?
 
 ```{r}
-data_buscas %>%
+search_date %>%
     filter(num_clicks > 0) %>%
     ggplot(aes(y = num_clicks, x = d_busca)) +
     geom_jitter() +
@@ -34,10 +42,16 @@ data_buscas %>%
     labs(x="Search date", y="Number of clicks")
 ```
 
-## Which results do people tend to try first? How does it change day-to-day?
+### Which results do people tend to try first? How does it change day-to-day?
 
+```{r}
+count_clicks_filter %>%
+    filter(first_click != "NA") %>%
+    ggplot(aes(x = first_click, y = count_clicks)) +
+    geom_point() +
+    labs(y="Number of clicks", x="Page where the first click was registered")
+```
 
-
-## What is our daily overall zero results rate? How does it vary between the groups?
-## Let session length be approximately the time between the first event and the last event in a session. Choose a variable from the dataset and describe its relationship to session length. Visualize the relationship.
-## Summarize your findings in an executive summary.
+### What is our daily overall zero results rate? How does it vary between the groups?
+### Let session length be approximately the time between the first event and the last event in a session. Choose a variable from the dataset and describe its relationship to session length. Visualize the relationship.
+### Summarize your findings in an executive summary.
