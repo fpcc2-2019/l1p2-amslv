@@ -11,6 +11,8 @@ Aqui, exploramos esses dados.
 library(tidyverse)
 library(here)
 library(lubridate)
+library(tidyr)
+library(dplyr)
 theme_set(theme_bw())
 ```
 
@@ -29,6 +31,13 @@ count_clicks_filter <- buscas %>%
     summarise(count_clicks = n()) %>%
     arrange(desc(count_clicks))  %>%
     top_n(20)
+```
+
+```{r}
+zero_results_found <- search_date %>%
+    group_by(d_busca) %>%
+    mutate(d_zero = unique(d_busca)) %>%
+    count(results == 0)
 ```
 
 ### What is our daily overall clickthrough rate? How does it vary between the groups?
@@ -53,5 +62,16 @@ count_clicks_filter %>%
 ```
 
 ### What is our daily overall zero results rate? How does it vary between the groups?
+```{r}
+    zero_results_found %>%
+        filter(`results == 0`) %>%
+            ggplot(aes(x = d_busca, y = n)) +
+            labs(x = "Group", y = "Count of zero results") +
+            coord_flip() +
+            theme(legend.position = "none") +
+            geom_jitter(aes(color = group, fill = group))
+
+```
+
 ### Let session length be approximately the time between the first event and the last event in a session. Choose a variable from the dataset and describe its relationship to session length. Visualize the relationship.
 ### Summarize your findings in an executive summary.
