@@ -49,7 +49,7 @@ count_clicks_filter %>%
     filter(first_click != "NA") %>%
     ggplot(aes(x = first_click, y = count_clicks)) +
     geom_point() +
-    labs(y="Number of clicks", x="Page where the first click was registered")
+        labs(y="Number of clicks", x="Result position")
 ```
 
 ### What is our daily overall zero results rate? How does it vary between the groups?
