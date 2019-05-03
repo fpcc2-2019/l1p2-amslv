@@ -18,8 +18,26 @@ theme_set(theme_bw())
 buscas = read_csv(here::here("data/search_data.csv"))
 ```
 
+```{r}
+data_buscas <- buscas %>%
+        mutate(d_busca = format(session_start_date, "%Y-%m-%d"))
+```
+
 ## What is our daily overall clickthrough rate? How does it vary between the groups?
+
+```{r}
+data_buscas %>%
+    filter(num_clicks > 0) %>%
+    ggplot(aes(y = num_clicks, x = d_busca)) +
+    geom_jitter() +
+    scale_y_continuous() +
+    labs(x="Search date", y="Number of clicks")
+```
+
 ## Which results do people tend to try first? How does it change day-to-day?
+
+
+
 ## What is our daily overall zero results rate? How does it vary between the groups?
 ## Let session length be approximately the time between the first event and the last event in a session. Choose a variable from the dataset and describe its relationship to session length. Visualize the relationship.
 ## Summarize your findings in an executive summary.
