@@ -69,9 +69,20 @@ count_clicks_filter %>%
             labs(x = "Group", y = "Count of zero results") +
             coord_flip() +
             theme(legend.position = "none") +
-            geom_jitter(aes(color = group, fill = group))
+            geom_jitter()
 
 ```
 
 ### Let session length be approximately the time between the first event and the last event in a session. Choose a variable from the dataset and describe its relationship to session length. Visualize the relationship.
+```{r}
+buscas %>%
+    filter(session_length > 0) %>%
+    filter(session_length < 1000) %>%
+    top_n(100) %>%
+    ggplot(aes(x = results, y = session_length)) +
+    coord_flip() +
+    geom_jitter()
+```
+
+
 ### Summarize your findings in an executive summary.
