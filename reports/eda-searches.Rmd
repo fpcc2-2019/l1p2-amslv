@@ -1,6 +1,9 @@
 ---
 title: "EDA buscas"
-output: html_notebook
+author: "Ana Silva"
+output:
+      html_document:
+        df_print: paged
 ---
 
 O objeto principal da análise são as buscas e a navegação depois da busca. Criamos esses dados a partir dos dados originais da wikimedia em `/data/search_data.csv`. 
@@ -11,6 +14,8 @@ Aqui, exploramos esses dados.
 library(tidyverse)
 library(here)
 library(lubridate)
+library(tidyr)
+library(dplyr)
 theme_set(theme_bw())
 ```
 
@@ -20,7 +25,7 @@ buscas = read_csv(here::here("data/search_data.csv"))
 
 ```{r}
 search_date <- buscas %>%
-        mutate(d_busca = format(session_start_date, "%Y-%m-%d"))
+    mutate(d_busca = format(session_start_date, "%Y-%m-%d"))
 ```
 
 ```{r}
@@ -31,18 +36,30 @@ count_clicks_filter <- buscas %>%
     top_n(20)
 ```
 
-### What is our daily overall clickthrough rate? How does it vary between the groups?
+```{r}
+zero_results_found <- search_date %>%
+    group_by(d_busca) %>%
+    mutate(d_zero = unique(d_busca)) %>%
+    count(results == 0)
+```
+
+### Qual é a nossa taxa de cliques geral diariamente? Como isso varia entre os grupos?
+
+Ao analisar o gráfico abaixo é possível verificar que a quantidade de cliques diários oscila entre 10 e 20. Também é possível verificar que a maioria dos usuários é do grupo A, justificando assim a maior quantidade de cliques registrados por usuários deste grupo.
 
 ```{r}
 search_date %>%
     filter(num_clicks > 0) %>%
-    ggplot(aes(y = num_clicks, x = d_busca)) +
-    geom_jitter() +
-    scale_y_continuous() +
+    ggplot(aes(x = num_clicks, y = d_busca)) +
+    geom_jitter(aes(color = group)) +
     labs(x="Search date", y="Number of clicks")
 ```
 
-### Which results do people tend to try first? How does it change day-to-day?
+### Quais resultados as pessoas tendem a tentar primeiro? Como isso muda no dia-a-dia?
+
+    Para essa análise foi selecionado o top 20 com relação a quantidade de clicks até o usuário encontrar o resultado esperado. Ao analisar o gráfico é possível verificar que em 90% dos casos, o usuário encontrou o resultado antes dos 2.500 clicks.
+    No dia a dia, fica nítido que a maioria dos cliques por parte do usuário estão concentrados entre o primeiro e o quinto resultado.
+
 
 ```{r}
 count_clicks_filter %>%
@@ -52,6 +69,56 @@ count_clicks_filter %>%
         labs(y="Number of clicks", x="Result position")
 ```
 
-### What is our daily overall zero results rate? How does it vary between the groups?
-### Let session length be approximately the time between the first event and the last event in a session. Choose a variable from the dataset and describe its relationship to session length. Visualize the relationship.
-### Summarize your findings in an executive summary.
+
+```{r}
+search_date %>% 
+    filter (first_click < 25) %>%
+    ggplot(aes(y = first_click, x = format(session_start_date, "%Y-%m-%d"))) +
+    geom_jitter() +
+    labs(
+        x = "Search date",
+        y = "First click position") 
+```
+
+
+### Qual é a nossa taxa de buscas com zero resultados no geral? Como isso varia entre os grupos?
+
+    Ao analisar o gráfico de buscas com zero resultados é possível visualizar que, em sua maioria, a quantidade de buscas zeradas oscila entre 3000 e 3600 por dia.
+    Ao visualizar esse mesmo dado, mas pela perspectiva dos grupos, fica nítido que o grupo A se deparou com uma quantidade maior de buscas zeradas.
+
+```{r}
+    zero_results_found %>%
+        filter(`results == 0`) %>%
+            ggplot(aes(x = d_busca, y = n)) +
+            labs(x = "Search Date", y = "Count of zero results") +
+            coord_flip() +
+            theme(legend.position = "none") +
+            geom_jitter()
+
+```
+
+```{r}
+search_date %>% 
+    filter(!is.na(results) & results == 0) %>% 
+    ggplot(aes(x = group, fill=group)) + 
+    geom_bar() +
+    theme(legend.position = "none") +
+    labs(
+        y = "Zero results searchs",
+        x = "Group") 
+```
+
+### A duração da sessão é aproximadamente o tempo entre o primeiro e o último evento de uma sessão. Escolha uma variável do conjunto de dados e descreva sua relação com o tamanho da sessão. Visualize o relacionamento.
+
+    Neste caso, tentamos verificar se existe uma relação entre o tamanho da sessão e a quantidade de cliques efetuados pelo usuário. Ao visualizar o gráfico, é possível inferir que, independentemente do tempo da sessão, a quantidade de cliques, majoritariamente, oscila entre 0 2.
+
+
+```{r}
+buscas %>%
+    filter(session_length > 0) %>%
+    filter(session_length < 1000) %>%
+    top_n(100) %>%
+    ggplot(aes(x = num_clicks, y = session_length)) +
+    coord_flip() +
+    geom_jitter()
+```
